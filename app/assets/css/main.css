@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* Tema oscuro por defecto: el fondo lo fija app.vue con utilidades Tailwind. */
+
+html {
+  color-scheme: dark;
+}
+
+/* Scrollbar discreto acorde al tema */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgb(51 65 85 / 0.8);
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
