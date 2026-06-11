@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import type { Stage } from '#shared/types/football'
+import type { MatchStatus, Stage } from '#shared/types/football'
 
 const store = useMatchesStore()
 
 // Centinela para la opción "Todas/Todos": reka-ui (base de USelect/USelectMenu)
 // prohíbe value="" en un item. En el store, '' sigue significando "sin filtro".
 const ALL = '__all__'
+
+const statusItems = [
+  { label: 'Todos los estados', value: ALL },
+  { label: STATUS_UI.SCHEDULED.label, value: 'SCHEDULED', icon: STATUS_UI.SCHEDULED.icon },
+  { label: STATUS_UI.LIVE.label, value: 'LIVE', icon: STATUS_UI.LIVE.icon },
+  { label: STATUS_UI.FINISHED.label, value: 'FINISHED', icon: STATUS_UI.FINISHED.icon },
+]
 
 const stageItems: Array<{ label: string; value: string }> = [
   { label: 'Todas las fases', value: ALL },
@@ -41,6 +48,10 @@ const stage = computed<string>({
   get: () => store.filters.stage || ALL,
   set: (v) => store.setFilters({ stage: v === ALL ? '' : (v as Stage) }),
 })
+const status = computed<string>({
+  get: () => store.filters.status || ALL,
+  set: (v) => store.setFilters({ status: v === ALL ? '' : (v as MatchStatus) }),
+})
 const group = computed<string>({
   get: () => store.filters.group || ALL,
   set: (v) => store.setFilters({ group: v === ALL ? '' : v }),
@@ -69,6 +80,10 @@ const activeCount = computed(() => Object.values(store.filters).filter((v) => v 
         {{ activeCount }} activo{{ activeCount > 1 ? 's' : '' }}
       </UBadge>
     </div>
+
+    <UFormField label="Estado">
+      <USelect v-model="status" :items="statusItems" class="w-full" />
+    </UFormField>
 
     <UFormField label="Fase">
       <USelect v-model="stage" :items="stageItems" class="w-full" />

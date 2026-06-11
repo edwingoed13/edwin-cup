@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Stage } from '#shared/types/football'
+import type { MatchStatus, Stage } from '#shared/types/football'
 
 // Fuerza el modo oscuro en esta página: el plugin de color-mode respeta este
 // meta (ignora la preferencia de localStorage, que en localhost la pueden
@@ -28,6 +28,7 @@ function buildQuery(): Record<string, string> {
   if (view.value === 'groups') q.view = 'groups'
   const f = store.filters
   if (f.stage) q.stage = f.stage
+  if (f.status) q.status = f.status
   if (f.group) q.group = f.group
   if (f.teamId) q.teamId = f.teamId
   if (f.dateFrom) q.from = f.dateFrom
@@ -65,6 +66,7 @@ onMounted(async () => {
   const q = route.query
   store.filters = {
     stage: str(q.stage) as Stage | '',
+    status: str(q.status) as MatchStatus | '',
     group: str(q.group),
     teamId: str(q.teamId),
     dateFrom: str(q.from),

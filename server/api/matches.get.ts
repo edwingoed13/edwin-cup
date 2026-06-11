@@ -4,7 +4,7 @@
  * (dateFrom/dateTo en formato YYYY-MM-DD, comparados contra la fecha PET).
  * Devuelve MatchWithTeams[] ordenado por kickoffPET ascendente.
  */
-import type { MatchWithTeams, Stage } from '#shared/types/football'
+import type { MatchStatus, MatchWithTeams, Stage } from '#shared/types/football'
 
 export default defineEventHandler(async (event): Promise<MatchWithTeams[]> => {
   const q = getQuery(event)
@@ -13,6 +13,9 @@ export default defineEventHandler(async (event): Promise<MatchWithTeams[]> => {
 
   if (q.stage) {
     list = list.filter((m) => m.stage === (q.stage as Stage))
+  }
+  if (q.status) {
+    list = list.filter((m) => m.status === (q.status as MatchStatus))
   }
   if (q.group) {
     list = list.filter((m) => m.group === String(q.group).toUpperCase())

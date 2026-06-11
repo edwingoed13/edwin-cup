@@ -9,6 +9,7 @@ import type {
 
 const EMPTY_FILTERS: MatchFiltersState = {
   stage: '',
+  status: '',
   group: '',
   teamId: '',
   dateFrom: '',
