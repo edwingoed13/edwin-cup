@@ -26,6 +26,7 @@ function qualifyLabel(index: number): string | undefined {
       <div class="flex items-center gap-3 text-xs text-muted">
         <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-full bg-emerald-500" /> Top 2</span>
         <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 rounded-full bg-amber-500/70" /> 3.º</span>
+        <span class="flex items-center gap-1"><span class="inline-block h-2 w-2 animate-pulse rounded-full bg-error" /> En vivo</span>
       </div>
     </div>
 
@@ -59,6 +60,13 @@ function qualifyLabel(index: number): string | undefined {
                 <span class="flex min-w-0 items-center gap-1.5">
                   <TeamCrest :team="row.team" :size="18" />
                   <span class="truncate">{{ row.team.name }}</span>
+                  <!-- Resultado en vivo contando provisionalmente en esta fila -->
+                  <span
+                    v-if="row.live"
+                    class="inline-block size-1.5 shrink-0 animate-pulse rounded-full bg-error"
+                    aria-hidden="true"
+                  />
+                  <span v-if="row.live" class="sr-only">— resultado en vivo provisional</span>
                   <span v-if="qualifyLabel(i)" class="sr-only">— {{ qualifyLabel(i) }}</span>
                 </span>
               </th>

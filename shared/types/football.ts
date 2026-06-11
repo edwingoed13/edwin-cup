@@ -102,6 +102,8 @@ export interface StandingRow {
   goalsAgainst: number
   goalDiff: number
   points: number
+  /** true si incluye un resultado EN VIVO (puntos provisionales, estilo Flashscore). */
+  live?: boolean
 }
 
 export interface GroupStanding {

@@ -111,6 +111,29 @@ function stageForRound(round: number): Stage {
   return 'GROUP'
 }
 
+/**
+ * Backstop para el lag de la fuente: la key gratuita tarda en marcar FT y un
+ * partido puede quedar "2H" indefinidamente tras el pitazo final. Si sigue
+ * LIVE pasado un máximo razonable desde el kickoff, se da por FINALIZADO con
+ * su marcador actual (cuando la fuente publique FT, manda el dato real).
+ * Grupos: sin prórroga (~105' + descanso + descuentos). Eliminatorias: con
+ * prórroga y penales, margen mayor.
+ */
+const LIVE_TIMEOUT_MIN: Record<Stage, number> = {
+  GROUP: 140,
+  ROUND_OF_32: 190,
+  ROUND_OF_16: 190,
+  QUARTER_FINAL: 190,
+  SEMI_FINAL: 190,
+  FINAL: 190,
+}
+
+function settleStaleLive(m: Match): Match {
+  if (m.status !== 'LIVE') return m
+  const elapsedMin = (Date.now() - new Date(m.kickoffLocal).getTime()) / 60_000
+  return elapsedMin > LIVE_TIMEOUT_MIN[m.stage] ? { ...m, status: 'FINISHED' } : m
+}
+
 function mapEvent(e: RawEvent): Match {
   const venue = VENUE_INFO[e.strVenue]
   const venueTz = venue?.tz ?? DEFAULT_TIMEZONE
@@ -228,6 +251,7 @@ async function buildFromApi(): Promise<WorldCupData> {
 
   const matches = events
     .map(mapEvent)
+    .map(settleStaleLive)
     .sort((a, b) => a.kickoffPET.localeCompare(b.kickoffPET))
 
   // Merge instantáneo de lo ya cacheado (escudos/forma); el resto se completa
@@ -273,7 +297,13 @@ function readSnapshot(): WorldCupData | null {
     }
     // Repuebla la cache de enriquecimiento para no re-pedir escudos/forma.
     seedEnrichmentFromTeams(raw.teams)
-    return { ...raw, fetchedAt: new Date().toISOString(), source: 'snapshot' }
+    return {
+      ...raw,
+      // El snapshot puede traer estados LIVE congelados de una corrida anterior.
+      matches: raw.matches.map(settleStaleLive),
+      fetchedAt: new Date().toISOString(),
+      source: 'snapshot',
+    }
   } catch {
     return null
   }
