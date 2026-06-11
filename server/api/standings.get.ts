@@ -1,8 +1,9 @@
 /**
  * GET /api/standings
  * Tabla de posiciones de los 12 grupos, calculada desde los partidos REALES
- * de fase de grupos ya finalizados. Antes de que empiece el Mundial todo está
- * a cero (igual sirve para mostrar los 4 equipos de cada grupo y su forma).
+ * de fase de grupos: los finalizados suman definitivo y los EN VIVO suman
+ * provisionalmente con su marcador actual (las filas afectadas llevan `live`).
+ * Antes de que empiece el Mundial todo está a cero.
  *
  * No usa filtros de la UI: siempre considera todos los partidos de grupos.
  */
@@ -36,8 +37,13 @@ export default defineEventHandler(async (): Promise<GroupStanding[]> => {
     const away = rowFor(m.group, m.awayTeamId)
     if (!home || !away) continue
 
-    // Solo cuentan los partidos finalizados con marcador.
-    if (m.status !== 'FINISHED' || !m.score) continue
+    // Cuentan los finalizados y, PROVISIONALMENTE, los EN VIVO con marcador
+    // (tabla "en vivo" estilo Flashscore; la fila queda marcada con `live`).
+    if (!m.score || (m.status !== 'FINISHED' && m.status !== 'LIVE')) continue
+    if (m.status === 'LIVE') {
+      home.live = true
+      away.live = true
+    }
 
     const { home: gh, away: ga } = m.score
     home.played++; away.played++
