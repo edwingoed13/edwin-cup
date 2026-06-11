@@ -33,9 +33,6 @@ importers:
       '@iconify-json/lucide':
         specifier: ^1.2.111
         version: 1.2.111
-      '@tailwindcss/vite':
-        specifier: ^4.1.11
-        version: 4.3.0(vite@7.3.5(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))
       tailwindcss:
         specifier: ^4.1.11
         version: 4.3.0

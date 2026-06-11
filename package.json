@@ -20,7 +20,6 @@
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.111",
-    "@tailwindcss/vite": "^4.1.11",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.8.3"
   },

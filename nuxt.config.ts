@@ -2,8 +2,8 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-06-01',
   devtools: { enabled: true },
 
-  // @nuxt/ui integra Tailwind v4 (su propio plugin de Vite), color-mode, iconos y fuentes.
-  // Por eso ya NO registramos @tailwindcss/vite a mano (duplicaría el procesado).
+  // @nuxt/ui integra Tailwind v4 (su propio plugin de Vite), color-mode, iconos y fuentes;
+  // por eso no instalamos ni registramos @tailwindcss/vite por separado.
   modules: ['@nuxt/ui', '@pinia/nuxt'],
 
   // Pinia: escanea los stores (ruta relativa a srcDir, es decir app/)
