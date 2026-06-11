@@ -24,14 +24,35 @@ const viewTabs = [
   { label: 'Grupos', value: 'groups', icon: 'i-lucide-table-2' },
 ]
 
-// Carga inicial en el cliente (app local, no necesitamos SSR de datos).
+// Responsive: en escritorio (lg+) el detalle es una columna fija; en móvil se
+// muestra en un drawer (USlideover) al tocar un partido. Default true para que
+// el SSR y el primer render del cliente coincidan (sin mismatch de hidratación).
+const isDesktop = ref(true)
+const detailOpen = ref(false)
+let allowAutoOpen = false
+
+// En móvil, elegir un partido abre el drawer; la selección automática inicial
+// (al cargar) no debe abrirlo de golpe.
+watch(
+  () => store.selectedMatchId,
+  (id) => {
+    if (allowAutoOpen && id && !isDesktop.value) detailOpen.value = true
+  },
+)
+
 onMounted(async () => {
+  const mq = window.matchMedia('(min-width: 1024px)')
+  isDesktop.value = mq.matches
+  mq.addEventListener('change', (e) => (isDesktop.value = e.matches))
+
   await Promise.all([store.fetchTeams(), store.fetchMatches(), store.fetchStandings()])
   // Selecciona por defecto el primer partido LIVE, o el primero de la lista.
   if (!store.selectedMatchId && store.matches.length > 0) {
     const live = store.matches.find((m) => m.status === 'LIVE')
     await store.setSelectedMatchId((live ?? store.matches[0]!).id)
   }
+  await nextTick()
+  allowAutoOpen = true
 })
 </script>
 
@@ -74,7 +95,16 @@ onMounted(async () => {
     <main v-if="view === 'matches'" class="grid flex-1 gap-6 lg:grid-cols-[16rem_1fr_24rem]">
       <MatchFilters class="h-fit lg:sticky lg:top-24" />
       <MatchList />
-      <MatchDetail class="h-fit lg:sticky lg:top-24" />
+
+      <!-- Escritorio: columna fija de detalle -->
+      <MatchDetail v-if="isDesktop" class="h-fit lg:sticky lg:top-24" />
+
+      <!-- Móvil: detalle en drawer, se abre al tocar un partido -->
+      <USlideover v-if="!isDesktop" v-model:open="detailOpen" title="Detalle del partido">
+        <template #body>
+          <MatchDetail />
+        </template>
+      </USlideover>
     </main>
 
     <!-- Vista Grupos: tabla de posiciones -->
