@@ -17,17 +17,26 @@ const widths = computed(() => ({
   draw: `${props.prediction.probDraw * 100}%`,
   away: `${props.prediction.probAwayWin * 100}%`,
 }))
+
+// Resumen accesible: el lector de pantalla anuncia las 3 probabilidades en vez
+// de leer la estructura de barras suelta.
+const ariaSummary = computed(
+  () =>
+    `Probabilidades — ${props.homeLabel} ${formatPercent(props.prediction.probHomeWin)}, ` +
+    `empate ${formatPercent(props.prediction.probDraw)}, ` +
+    `${props.awayLabel} ${formatPercent(props.prediction.probAwayWin)}`,
+)
 </script>
 
 <template>
   <!-- Mini: una sola barra segmentada, ideal para cada fila de la lista -->
-  <div v-if="variant === 'mini'" class="w-full">
-    <div class="flex h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+  <div v-if="variant === 'mini'" class="w-full" role="img" :aria-label="ariaSummary">
+    <div class="flex h-1.5 w-full overflow-hidden rounded-full bg-accented">
       <div class="bg-sky-400 transition-all duration-700" :style="{ width: widths.home }" />
       <div class="bg-slate-500 transition-all duration-700" :style="{ width: widths.draw }" />
       <div class="bg-amber-400 transition-all duration-700" :style="{ width: widths.away }" />
     </div>
-    <div class="mt-1 flex justify-between text-[10px] tabular-nums text-slate-400">
+    <div class="mt-1 flex justify-between text-xs tabular-nums text-muted">
       <span class="text-sky-300">1 {{ formatPercent(prediction.probHomeWin) }}</span>
       <span>X {{ formatPercent(prediction.probDraw) }}</span>
       <span class="text-amber-300">2 {{ formatPercent(prediction.probAwayWin) }}</span>
@@ -35,7 +44,7 @@ const widths = computed(() => ({
   </div>
 
   <!-- Full: tres filas con etiqueta, barra y porcentaje (panel de detalle) -->
-  <div v-else class="space-y-2">
+  <div v-else class="space-y-2" role="img" :aria-label="ariaSummary">
     <div
       v-for="row in [
         { label: homeLabel, prob: prediction.probHomeWin, width: widths.home, color: 'bg-sky-400' },
@@ -45,8 +54,8 @@ const widths = computed(() => ({
       :key="row.label"
       class="grid grid-cols-[7rem_1fr_3rem] items-center gap-3 text-sm"
     >
-      <span class="truncate text-slate-300">{{ row.label }}</span>
-      <div class="h-2.5 overflow-hidden rounded-full bg-slate-800">
+      <span class="truncate text-default">{{ row.label }}</span>
+      <div class="h-2.5 overflow-hidden rounded-full bg-accented">
         <div
           class="h-full rounded-full transition-all duration-700"
           :class="row.color"
