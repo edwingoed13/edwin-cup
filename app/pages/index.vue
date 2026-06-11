@@ -133,7 +133,11 @@ onMounted(async () => {
 
     <!-- Vista Partidos: filtros / lista / detalle -->
     <main v-if="view === 'matches'" class="grid flex-1 gap-6 lg:grid-cols-[16rem_1fr_24rem]">
-      <MatchFilters class="h-fit lg:sticky lg:top-24" />
+      <div class="h-fit space-y-4 lg:sticky lg:top-24">
+        <MatchFilters />
+        <!-- Cancha del partido seleccionado (solo desktop, donde hay espacio) -->
+        <PitchView class="hidden lg:block" />
+      </div>
       <MatchList />
 
       <!-- Escritorio: columna fija de detalle -->
