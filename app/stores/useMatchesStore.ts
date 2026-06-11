@@ -108,6 +108,32 @@ export const useMatchesStore = defineStore('matches', {
       }
     },
 
+    /**
+     * Refresco silencioso de TODO el panel (sin skeletons), para que la lista,
+     * el orden y la tabla de grupos sigan los resultados reales en vivo.
+     * Re-trae partidos y standings; predicciones solo de los partidos nuevos
+     * (las del baseline no cambian durante el juego).
+     */
+    async refresh(): Promise<void> {
+      try {
+        const query = Object.fromEntries(
+          Object.entries(this.filters).filter(([, v]) => v !== '' && v !== null),
+        )
+        const [matches] = await Promise.all([
+          $fetch<MatchWithTeams[]>('/api/matches', { query }),
+          this.fetchStandings(),
+        ])
+        this.matches = matches
+        if (this.selectedMatchId && !matches.some((m) => m.id === this.selectedMatchId)) {
+          this.selectedMatchId = null
+        }
+        const missing = matches.map((m) => m.id).filter((id) => !this.predictions[id])
+        if (missing.length) await this.fetchPredictions(missing)
+      } catch {
+        // Silencioso: un fallo de red transitorio no debe perturbar la vista actual.
+      }
+    },
+
     /** Re-fetch del partido seleccionado + su predicción (lo usa el polling LIVE). */
     async refreshSelectedMatch(): Promise<void> {
       const id = this.selectedMatchId

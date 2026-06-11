@@ -10,6 +10,9 @@ const store = useMatchesStore()
 const route = useRoute()
 const router = useRouter()
 
+// Mantiene lista, orden y tabla de grupos al día con los resultados reales.
+useAutoRefresh()
+
 const liveCount = computed(() => store.matches.filter((m) => m.status === 'LIVE').length)
 
 // Vista (Partidos / Grupos). Se inicializa desde la URL y se mantiene en sync
