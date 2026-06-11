@@ -31,6 +31,16 @@ export default defineEventHandler(async (event): Promise<MatchWithTeams[]> => {
     list = list.filter((m) => m.kickoffPET.slice(0, 10) <= String(q.dateTo))
   }
 
+  // Orden por relevancia: en vivo primero, luego programados (más próximo arriba)
+  // y al final los finalizados (más reciente primero).
+  const STATUS_ORDER: Record<MatchStatus, number> = { LIVE: 0, SCHEDULED: 1, FINISHED: 2 }
   const resolved = await Promise.all(list.map(resolveMatchTeams))
-  return resolved.sort((a, b) => a.kickoffPET.localeCompare(b.kickoffPET))
+  return resolved.sort((a, b) => {
+    if (STATUS_ORDER[a.status] !== STATUS_ORDER[b.status]) {
+      return STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
+    }
+    return a.status === 'FINISHED'
+      ? b.kickoffPET.localeCompare(a.kickoffPET)
+      : a.kickoffPET.localeCompare(b.kickoffPET)
+  })
 })
