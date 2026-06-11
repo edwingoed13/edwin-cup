@@ -1,13 +1,11 @@
 /**
- * Bandera de un equipo. El backend ya envía el emoji real en `team.flag`
- * (ver server/data/worldCupReference.ts); si faltara, se cae a las iniciales
- * del código de país como placeholder.
+ * Identidad textual de un equipo cuando NO hay escudo real (`team.badge`).
+ *
+ * IMPORTANTE: no usamos emojis de bandera. Windows no los renderiza como
+ * banderas (muestra las 2 letras del indicador regional, p. ej. 🇧🇷 → "BR"),
+ * por eso el campo `team.flag` (emoji) se ignora a propósito en la UI y caemos
+ * a un monograma con el código FIFA, que renderiza igual en todas las plataformas.
  */
-export function teamFlag(team: { flag?: string; countryCode: string }): string {
-  return team.flag || team.countryCode.slice(0, 2)
-}
-
-/** Fallback por código de país suelto (cuando no hay objeto Team). */
-export function flagFor(countryCode: string): string {
-  return countryCode.slice(0, 2)
+export function teamMonogram(team: { countryCode: string }): string {
+  return team.countryCode.slice(0, 3).toUpperCase()
 }

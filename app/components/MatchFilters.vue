@@ -3,115 +3,111 @@ import type { Stage } from '#shared/types/football'
 
 const store = useMatchesStore()
 
-const stageOptions: Array<{ value: Stage | ''; label: string }> = [
-  { value: '', label: 'Todas las fases' },
-  { value: 'GROUP', label: STAGE_LABELS.GROUP },
-  { value: 'ROUND_OF_32', label: STAGE_LABELS.ROUND_OF_32 },
-  { value: 'ROUND_OF_16', label: STAGE_LABELS.ROUND_OF_16 },
-  { value: 'QUARTER_FINAL', label: STAGE_LABELS.QUARTER_FINAL },
-  { value: 'SEMI_FINAL', label: STAGE_LABELS.SEMI_FINAL },
-  { value: 'FINAL', label: STAGE_LABELS.FINAL },
+// Centinela para la opción "Todas/Todos": reka-ui (base de USelect/USelectMenu)
+// prohíbe value="" en un item. En el store, '' sigue significando "sin filtro".
+const ALL = '__all__'
+
+const stageItems: Array<{ label: string; value: string }> = [
+  { label: 'Todas las fases', value: ALL },
+  { label: STAGE_LABELS.GROUP, value: 'GROUP' },
+  { label: STAGE_LABELS.ROUND_OF_32, value: 'ROUND_OF_32' },
+  { label: STAGE_LABELS.ROUND_OF_16, value: 'ROUND_OF_16' },
+  { label: STAGE_LABELS.QUARTER_FINAL, value: 'QUARTER_FINAL' },
+  { label: STAGE_LABELS.SEMI_FINAL, value: 'SEMI_FINAL' },
+  { label: STAGE_LABELS.FINAL, value: 'FINAL' },
 ]
 
 // Grupos presentes en los datos cargados (evita ofrecer grupos vacíos).
-const groupOptions = computed(() => {
-  const groups = new Set(
-    store.matches.filter((m) => m.group).map((m) => m.group as string),
+const groupItems = computed(() => {
+  const present = new Set(store.matches.filter((m) => m.group).map((m) => m.group as string))
+  const groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'].filter(
+    (g) => present.size === 0 || present.has(g),
   )
-  return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'].filter(
-    (g) => groups.size === 0 || groups.has(g),
-  )
+  return [
+    { label: 'Todos los grupos', value: ALL },
+    ...groups.map((g) => ({ label: `Grupo ${g}`, value: g })),
+  ]
 })
 
-const hasActiveFilters = computed(() =>
-  Object.values(store.filters).some((v) => v !== ''),
-)
+// Equipos con escudo real (UAvatar cae a iniciales si falta `badge`).
+const teamItems = computed(() => [
+  { label: 'Todos los equipos', value: ALL },
+  ...store.teams.map((t) => ({ label: t.name, value: t.id, avatar: { src: t.badge, alt: t.name } })),
+])
 
-const labelClass = 'mb-1 block text-xs font-medium uppercase tracking-wide text-slate-400'
-const inputClass =
-  'w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 ' +
-  'focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 [color-scheme:dark]'
+// Puentes v-model hacia el store (cada cambio dispara el re-fetch de partidos).
+// El centinela ALL se traduce a '' al escribir, y '' se muestra como ALL al leer.
+const stage = computed<string>({
+  get: () => store.filters.stage || ALL,
+  set: (v) => store.setFilters({ stage: v === ALL ? '' : (v as Stage) }),
+})
+const group = computed<string>({
+  get: () => store.filters.group || ALL,
+  set: (v) => store.setFilters({ group: v === ALL ? '' : v }),
+})
+const teamId = computed<string>({
+  get: () => store.filters.teamId || ALL,
+  set: (v) => store.setFilters({ teamId: v === ALL ? '' : (v ?? '') }),
+})
+const dateFrom = computed({
+  get: () => store.filters.dateFrom,
+  set: (v) => store.setFilters({ dateFrom: v ?? '' }),
+})
+const dateTo = computed({
+  get: () => store.filters.dateTo,
+  set: (v) => store.setFilters({ dateTo: v ?? '' }),
+})
+
+const activeCount = computed(() => Object.values(store.filters).filter((v) => v !== '').length)
 </script>
 
 <template>
-  <aside class="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-lg shadow-black/30">
-    <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">Filtros</h2>
-
-    <div>
-      <label :class="labelClass" for="filter-stage">Fase</label>
-      <select
-        id="filter-stage"
-        :class="inputClass"
-        :value="store.filters.stage"
-        @change="store.setFilters({ stage: ($event.target as HTMLSelectElement).value as Stage | '' })"
-      >
-        <option v-for="opt in stageOptions" :key="opt.value" :value="opt.value">
-          {{ opt.label }}
-        </option>
-      </select>
+  <aside class="space-y-4 rounded-card border border-default bg-muted p-5">
+    <div class="flex items-center justify-between">
+      <h2 class="text-sm font-semibold text-highlighted">Filtros</h2>
+      <UBadge v-if="activeCount" color="primary" variant="soft" size="sm">
+        {{ activeCount }} activo{{ activeCount > 1 ? 's' : '' }}
+      </UBadge>
     </div>
+
+    <UFormField label="Fase">
+      <USelect v-model="stage" :items="stageItems" class="w-full" />
+    </UFormField>
 
     <!-- El grupo solo tiene sentido en fase de grupos -->
-    <div v-if="store.filters.stage === 'GROUP'">
-      <label :class="labelClass" for="filter-group">Grupo</label>
-      <select
-        id="filter-group"
-        :class="inputClass"
-        :value="store.filters.group"
-        @change="store.setFilters({ group: ($event.target as HTMLSelectElement).value })"
-      >
-        <option value="">Todos los grupos</option>
-        <option v-for="g in groupOptions" :key="g" :value="g">Grupo {{ g }}</option>
-      </select>
-    </div>
+    <UFormField v-if="store.filters.stage === 'GROUP'" label="Grupo">
+      <USelect v-model="group" :items="groupItems" class="w-full" />
+    </UFormField>
 
-    <div>
-      <label :class="labelClass" for="filter-team">Equipo</label>
-      <select
-        id="filter-team"
-        :class="inputClass"
-        :value="store.filters.teamId"
-        @change="store.setFilters({ teamId: ($event.target as HTMLSelectElement).value })"
-      >
-        <option value="">Todos los equipos</option>
-        <option v-for="team in store.teams" :key="team.id" :value="team.id">
-          {{ teamFlag(team) }} {{ team.name }}
-        </option>
-      </select>
-    </div>
+    <UFormField label="Equipo">
+      <USelectMenu
+        v-model="teamId"
+        :items="teamItems"
+        value-key="value"
+        icon="i-lucide-search"
+        placeholder="Todos los equipos"
+        class="w-full"
+      />
+    </UFormField>
 
     <div class="grid grid-cols-2 gap-3">
-      <div>
-        <label :class="labelClass" for="filter-from">Desde (PET)</label>
-        <input
-          id="filter-from"
-          type="date"
-          :class="inputClass"
-          :value="store.filters.dateFrom"
-          @change="store.setFilters({ dateFrom: ($event.target as HTMLInputElement).value })"
-        >
-      </div>
-      <div>
-        <label :class="labelClass" for="filter-to">Hasta (PET)</label>
-        <input
-          id="filter-to"
-          type="date"
-          :class="inputClass"
-          :value="store.filters.dateTo"
-          @change="store.setFilters({ dateTo: ($event.target as HTMLInputElement).value })"
-        >
-      </div>
+      <UFormField label="Desde (PET)">
+        <UInput v-model="dateFrom" type="date" class="w-full" />
+      </UFormField>
+      <UFormField label="Hasta (PET)">
+        <UInput v-model="dateTo" type="date" class="w-full" />
+      </UFormField>
     </div>
 
-    <button
-      type="button"
-      class="w-full rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-300
-             transition-colors hover:border-slate-500 hover:text-white
-             disabled:cursor-not-allowed disabled:opacity-40"
-      :disabled="!hasActiveFilters"
+    <UButton
+      block
+      color="neutral"
+      variant="outline"
+      icon="i-lucide-filter-x"
+      :disabled="!activeCount"
       @click="store.clearFilters()"
     >
       Limpiar filtros
-    </button>
+    </UButton>
   </aside>
 </template>

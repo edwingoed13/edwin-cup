@@ -32,13 +32,16 @@ const teamStatRows = computed(() => {
         <p class="text-xs font-medium uppercase tracking-wider text-slate-400">
           {{ STAGE_LABELS[match.stage] }}<template v-if="match.group"> · Grupo {{ match.group }}</template>
         </p>
-        <span
-          class="rounded-full px-2.5 py-1 text-[11px] font-bold tracking-wide"
-          :class="STATUS_BADGE_CLASSES[match.status]"
+        <UBadge
+          :color="STATUS_UI[match.status].color"
+          :icon="STATUS_UI[match.status].icon"
+          variant="soft"
+          size="sm"
+          :class="match.status === 'LIVE' && 'animate-pulse'"
         >
-          {{ STATUS_LABELS[match.status] }}
-          <template v-if="match.status === 'LIVE' && isPolling"> · actualizando</template>
-        </span>
+          {{ STATUS_UI[match.status].label
+          }}<template v-if="match.status === 'LIVE' && isPolling"> · actualizando</template>
+        </UBadge>
       </div>
 
       <!-- Marcador / enfrentamiento -->
@@ -98,15 +101,21 @@ const teamStatRows = computed(() => {
 
       <!-- Sede y horarios -->
       <div class="space-y-1.5 rounded-xl border border-slate-800 bg-slate-950/50 p-3 text-sm">
-        <p class="font-medium text-slate-200">
-          🏟️ {{ match.stadium }} · {{ match.city }}, {{ match.country }}
+        <p class="flex items-center gap-1.5 font-medium text-slate-200">
+          <UIcon name="i-lucide-map-pin" class="size-4 shrink-0 text-muted" />
+          {{ match.stadium }} · {{ match.city }}, {{ match.country }}
         </p>
         <p v-if="match.stadiumCapacity || match.altitudeM != null" class="text-slate-400">
           <span v-if="match.stadiumCapacity">Aforo ~{{ match.stadiumCapacity.toLocaleString('es-PE') }}</span>
           <span v-if="match.stadiumCapacity && match.altitudeM != null" class="text-slate-600"> · </span>
           <span v-if="match.altitudeM != null">
             Altitud {{ match.altitudeM.toLocaleString('es-PE') }} m
-            <span v-if="match.altitudeM >= 1500" class="text-amber-300">⛰️ exigente</span>
+            <span
+              v-if="match.altitudeM >= 1500"
+              class="inline-flex items-center gap-1 align-middle text-warning"
+            >
+              <UIcon name="i-lucide-mountain" class="size-3.5" /> exigente
+            </span>
           </span>
         </p>
         <p class="text-slate-400">
@@ -183,9 +192,13 @@ const teamStatRows = computed(() => {
           </div>
         </div>
 
-        <p class="mt-3 rounded-xl border border-slate-800 bg-slate-950/50 p-3 text-sm leading-relaxed text-slate-300">
-          💡 {{ prediction.explanation }}
-        </p>
+        <UAlert
+          class="mt-3"
+          color="neutral"
+          variant="soft"
+          icon="i-lucide-sparkles"
+          :description="prediction.explanation"
+        />
       </div>
       <p v-else class="text-sm text-slate-500">Calculando predicción…</p>
     </div>
