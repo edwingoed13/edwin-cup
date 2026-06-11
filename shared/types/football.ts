@@ -112,6 +112,7 @@ export interface GroupStanding {
 /** Filtros que acepta GET /api/matches y que maneja el store de Pinia. */
 export interface MatchFiltersState {
   stage: Stage | ''
+  status: MatchStatus | '' // Programado / En vivo / Finalizado
   group: string
   teamId: string
   dateFrom: string // YYYY-MM-DD (en PET)

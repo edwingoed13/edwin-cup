@@ -1,9 +1,30 @@
 @import "tailwindcss";
+@import "@nuxt/ui";
+
+/* Design tokens — radios consistentes (auditoría §9.4).
+   Generan utilidades Tailwind: rounded-card, rounded-control. */
+@theme {
+  --radius-card: 0.875rem; /* 14px — superficies / cards */
+  --radius-control: 0.5rem; /* 8px  — botones / inputs */
+}
 
 /* Tema oscuro por defecto: el fondo lo fija app.vue con utilidades Tailwind. */
 
 html {
   color-scheme: dark;
+}
+
+/* Accesibilidad: respeta "reduce motion" — neutraliza pulsos y transiciones
+   largas para quienes lo piden a nivel de SO (auditoría §5, C5). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Scrollbar discreto acorde al tema */

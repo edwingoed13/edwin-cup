@@ -13,44 +13,59 @@ function stageLine(match: MatchWithTeams): string {
 <template>
   <section class="space-y-3">
     <div class="flex items-baseline justify-between">
-      <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
-        Partidos <span class="text-slate-500">({{ store.matches.length }})</span>
+      <h2 class="text-sm font-semibold text-highlighted">
+        Partidos <span class="text-muted">({{ store.matches.length }})</span>
       </h2>
-      <span v-if="store.loadingMatches" class="text-xs text-slate-500">Cargando…</span>
+      <span v-if="store.loadingMatches" class="text-xs text-muted">Cargando…</span>
     </div>
 
-    <p v-if="store.error" class="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-      {{ store.error }}
-    </p>
+    <UAlert
+      v-if="store.error"
+      color="error"
+      variant="soft"
+      icon="i-lucide-triangle-alert"
+      :title="store.error"
+    />
+
+    <!-- Skeletons mientras llega la primera tanda -->
+    <div v-else-if="store.loadingMatches && !store.matches.length" class="space-y-2">
+      <USkeleton v-for="i in 6" :key="i" class="h-28 w-full rounded-card" />
+    </div>
 
     <p
-      v-else-if="!store.loadingMatches && store.matches.length === 0"
-      class="rounded-lg border border-slate-800 bg-slate-900/60 p-6 text-center text-sm text-slate-400"
+      v-else-if="!store.matches.length"
+      class="rounded-card border border-default bg-muted p-6 text-center text-sm text-muted"
     >
       No hay partidos con los filtros actuales.
     </p>
 
-    <ul class="space-y-2">
+    <ul v-else class="space-y-2">
       <li v-for="match in store.matches" :key="match.id">
         <button
           type="button"
-          class="w-full rounded-2xl border bg-slate-900/60 p-4 text-left shadow-md shadow-black/20
-                 transition-all hover:border-slate-600 hover:bg-slate-900"
+          :aria-label="`${match.homeTeam.name} vs ${match.awayTeam.name} · ${STATUS_UI[match.status].label}`"
+          :aria-pressed="match.id === store.selectedMatchId"
+          class="w-full rounded-card border bg-muted p-4 text-left transition-colors
+                 hover:border-accented hover:bg-elevated
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           :class="match.id === store.selectedMatchId
-            ? 'border-sky-500/60 ring-1 ring-sky-500/40'
-            : 'border-slate-800'"
+            ? 'border-primary ring-1 ring-primary/50'
+            : 'border-default'"
           @click="store.setSelectedMatchId(match.id)"
         >
           <div class="mb-2 flex items-center justify-between gap-2">
-            <span class="text-xs font-medium tabular-nums text-slate-400">
-              {{ formatPET(match.kickoffPET) }} <span class="text-slate-600">PET</span>
+            <span class="text-xs font-medium tabular-nums text-muted">
+              {{ formatPET(match.kickoffPET) }} <span class="text-dimmed">PET</span>
             </span>
-            <span
-              class="rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide"
-              :class="STATUS_BADGE_CLASSES[match.status]"
+            <UBadge
+              :color="STATUS_UI[match.status].color"
+              :icon="STATUS_UI[match.status].icon"
+              variant="soft"
+              size="sm"
+              :class="match.status === 'LIVE' && 'animate-pulse'"
             >
-              {{ STATUS_LABELS[match.status] }}
-            </span>
+              {{ STATUS_UI[match.status].label }}
+            </UBadge>
           </div>
 
           <div class="mb-2 flex items-center justify-between gap-3">
@@ -58,7 +73,7 @@ function stageLine(match: MatchWithTeams): string {
               <TeamCrest :team="match.homeTeam" :size="22" />
               <span class="truncate font-semibold">{{ match.homeTeam.name }}</span>
             </div>
-            <div class="shrink-0 text-sm font-bold tabular-nums text-slate-300">
+            <div class="shrink-0 text-sm font-bold tabular-nums text-muted">
               <template v-if="match.score">{{ match.score.home }} – {{ match.score.away }}</template>
               <template v-else>vs</template>
             </div>
@@ -68,7 +83,7 @@ function stageLine(match: MatchWithTeams): string {
             </div>
           </div>
 
-          <p class="mb-2 truncate text-xs text-slate-500">{{ stageLine(match) }}</p>
+          <p class="mb-2 truncate text-xs text-muted">{{ stageLine(match) }}</p>
 
           <ProbabilityBars
             v-if="store.predictions[match.id]"

@@ -9,15 +9,15 @@ export const STAGE_LABELS: Record<Stage, string> = {
   FINAL: 'Final',
 }
 
-export const STATUS_LABELS: Record<MatchStatus, string> = {
-  SCHEDULED: 'Programado',
-  LIVE: 'EN VIVO',
-  FINISHED: 'Finalizado',
-}
-
-/** Clases Tailwind del badge según estado (punto 6 del diseño). */
-export const STATUS_BADGE_CLASSES: Record<MatchStatus, string> = {
-  SCHEDULED: 'bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/30',
-  LIVE: 'bg-red-500/15 text-red-300 ring-1 ring-red-500/40 animate-pulse',
-  FINISHED: 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30',
+/**
+ * Estado de un partido → props de `UBadge` (label + color semántico + icono
+ * Lucide). Centraliza la presentación del estado para toda la UI (auditoría §10.1).
+ */
+export const STATUS_UI: Record<
+  MatchStatus,
+  { label: string; color: 'neutral' | 'error' | 'success'; icon: string }
+> = {
+  SCHEDULED: { label: 'Programado', color: 'neutral', icon: 'i-lucide-clock' },
+  LIVE: { label: 'En vivo', color: 'error', icon: 'i-lucide-radio' },
+  FINISHED: { label: 'Finalizado', color: 'success', icon: 'i-lucide-circle-check' },
 }
