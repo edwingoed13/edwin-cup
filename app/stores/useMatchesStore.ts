@@ -68,8 +68,9 @@ export const useMatchesStore = defineStore('matches', {
           this.selectedMatchId = null
         }
 
-        // Pre-carga las predicciones de la lista (para las mini-barras).
-        await Promise.all(this.matches.map((m) => this.fetchPrediction(m.id)))
+        // Pre-carga las predicciones de la lista en UNA sola petición batch
+        // (antes era un N+1: una llamada HTTP por partido, ~72 al cargar).
+        await this.fetchPredictions(this.matches.map((m) => m.id))
       } catch (e) {
         this.error = e instanceof Error ? e.message : 'Error cargando partidos'
       } finally {
@@ -90,6 +91,19 @@ export const useMatchesStore = defineStore('matches', {
         this.predictions[matchId] = await $fetch<Prediction>(`/api/predictions/${matchId}`)
       } catch {
         // Una predicción fallida no debe romper el dashboard completo.
+      }
+    },
+
+    /** Carga en lote las predicciones de varios partidos en una sola petición. */
+    async fetchPredictions(ids: string[]): Promise<void> {
+      if (!ids.length) return
+      try {
+        const map = await $fetch<Record<string, Prediction>>('/api/predictions', {
+          query: { ids: ids.join(',') },
+        })
+        this.predictions = { ...this.predictions, ...map }
+      } catch {
+        // Las predicciones son secundarias; un fallo no debe romper el dashboard.
       }
     },
 
