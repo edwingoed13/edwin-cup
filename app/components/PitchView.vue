@@ -85,7 +85,20 @@ const ballOffset = computed(() => (hasPossession.value ? (possHome.value - 50) *
       <span class="truncate text-right font-medium text-amber-300">{{ match.awayTeam.name }}</span>
     </div>
 
-    <!-- Posesión en vivo -->
+    <!-- Marcador: la señal en vivo que SÍ entrega la fuente; se refresca con el polling -->
+    <div class="mt-2 flex items-center justify-center gap-2">
+      <p v-if="match.score" class="text-2xl font-black tabular-nums text-highlighted">
+        {{ match.score.home }} <span class="text-dimmed">–</span> {{ match.score.away }}
+      </p>
+      <p v-else class="text-sm tabular-nums text-muted">{{ formatPET(match.kickoffPET) }} · PET</p>
+      <span
+        v-if="isLive"
+        class="inline-block size-2 shrink-0 animate-pulse rounded-full bg-error"
+        aria-hidden="true"
+      />
+    </div>
+
+    <!-- Posesión: solo si la fuente la provee (TheSportsDB free no la trae) -->
     <div v-if="hasPossession" class="mt-3">
       <div class="mb-1 flex justify-between text-xs tabular-nums text-muted">
         <span>Posesión</span>
@@ -96,10 +109,11 @@ const ballOffset = computed(() => (hasPossession.value ? (possHome.value - 50) *
         <div class="bg-amber-400 transition-all duration-700" :style="{ width: `${100 - possHome}%` }" />
       </div>
     </div>
-    <p v-else class="mt-3 text-center text-xs text-muted">
-      {{ match.status === 'FINISHED'
-        ? 'Partido finalizado'
-        : 'La posesión en vivo aparecerá al arrancar el partido' }}
+    <p v-else-if="isLive" class="mt-1 text-center text-xs text-dimmed">
+      Marcador en vivo · la fuente gratis no envía posesión
+    </p>
+    <p v-else-if="match.status === 'FINISHED'" class="mt-1 text-center text-xs text-muted">
+      Resultado final
     </p>
   </aside>
 </template>
